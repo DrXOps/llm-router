@@ -7,7 +7,7 @@ import (
 )
 
 func TestNewClassifierDisabled(t *testing.T) {
-	c := NewClassifier(false, "", "")
+	c := NewClassifier(false, "", "", "")
 	if c.Enabled() {
 		t.Error("disabled classifier should not be enabled")
 	}
@@ -21,7 +21,7 @@ func TestNewClassifierDisabled(t *testing.T) {
 }
 
 func TestNewClassifierEnabledNoModel(t *testing.T) {
-	c := NewClassifier(true, "/nonexistent/model.bin", "/nonexistent/vocab.txt")
+	c := NewClassifier(true, "/nonexistent/model.bin", "/nonexistent/vocab.txt", "")
 	if c.Enabled() {
 		t.Error("classifier without model files should gracefully degrade")
 	}
@@ -29,7 +29,7 @@ func TestNewClassifierEnabledNoModel(t *testing.T) {
 
 func TestNewClassifierEnabledWithValidFiles(t *testing.T) {
 	// We need actual model files for this. Without them, it degrades.
-	c := NewClassifier(true, "testdata/model.bin", "testdata/vocab.txt")
+	c := NewClassifier(true, "testdata/model.bin", "testdata/vocab.txt", "")
 	if c.Enabled() {
 		t.Log("model files exist, classifier is enabled")
 	} else {
@@ -38,7 +38,7 @@ func TestNewClassifierEnabledWithValidFiles(t *testing.T) {
 }
 
 func TestClassifierDebugInfo(t *testing.T) {
-	c := NewClassifier(false, "", "")
+	c := NewClassifier(false, "", "", "")
 	info := c.DebugInfo()
 	if info["enabled"] != false {
 		t.Error("disabled classifier should show enabled=false")

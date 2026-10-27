@@ -1,11 +1,15 @@
 package slm
 
 import (
+	"encoding/binary"
+	"fmt"
+	"io"
 	"log/slog"
 	"math"
+	"os"
 )
 
-// LogisticHead is a simple binary classifier trained on top of MiniLM embeddings.
+// LogisticHead is a binary classifier trained on top of MiniLM embeddings.
 // It maps a [hidden_size] embedding to a probability for each model target.
 type LogisticHead struct {
 	Weight []float32 // [num_classes × hidden_size]
@@ -58,16 +62,69 @@ func (h *LogisticHead) Predict(embedding []float32) (string, float32, map[string
 	return h.Labels[bestIdx], probs[bestIdx], scoresMap
 }
 
+// LoadClassificationHead loads trained weights from a .bin file.
+func LoadClassificationHead(path string, hiddenSize int) (*LogisticHead, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	// Read header: num_classes, hidden_size.
+	var numClasses, hs int32
+	if err := binary.Read(f, binary.LittleEndian, &numClasses); err != nil {
+		return nil, fmt.Errorf("read num_classes: %w", err)
+	}
+	if err := binary.Read(f, binary.LittleEndian, &hs); err != nil {
+		return nil, fmt.Errorf("read hidden_size: %w", err)
+	}
+	if int(hs) != hiddenSize {
+		return nil, fmt.Errorf("hidden_size mismatch: head=%d, model=%d", hs, hiddenSize)
+	}
+
+	// Read labels.
+	labels := make([]string, numClasses)
+	for i := 0; i < int(numClasses); i++ {
+		var labelLen int32
+		if err := binary.Read(f, binary.LittleEndian, &labelLen); err != nil {
+			return nil, fmt.Errorf("read label %d length: %w", i, err)
+		}
+		labelBytes := make([]byte, labelLen)
+		if _, err := io.ReadFull(f, labelBytes); err != nil {
+			return nil, fmt.Errorf("read label %d bytes: %w", i, err)
+		}
+		labels[i] = string(labelBytes[:len(labelBytes)-1]) // strip null terminator
+	}
+
+	// Read weights.
+	weight := make([]float32, numClasses*hs)
+	if err := binary.Read(f, binary.LittleEndian, &weight); err != nil {
+		return nil, fmt.Errorf("read weights: %w", err)
+	}
+
+	// Read bias.
+	bias := make([]float32, numClasses)
+	if err := binary.Read(f, binary.LittleEndian, &bias); err != nil {
+		return nil, fmt.Errorf("read bias: %w", err)
+	}
+
+	return &LogisticHead{
+		Weight: weight,
+		Bias:   bias,
+		Labels: labels,
+	}, nil
+}
+
 // NLPClassifier wraps the full NLP pipeline: tokenizer → MiniLM → logistic head.
 type NLPClassifier struct {
 	Tokenizer *Tokenizer
 	MiniLM    *MiniLM
 	Head      *LogisticHead
-	Enabled    bool
+	Enabled   bool
 }
 
-// NewNLPClassifier creates a new NLP classifier from model and vocab files.
-func NewNLPClassifier(modelPath, vocabPath string, enable bool) (*NLPClassifier, error) {
+// NewNLPClassifier creates a new NLP classifier from model, vocab, and head files.
+func NewNLPClassifier(modelPath, vocabPath, headPath string, enable bool) (*NLPClassifier, error) {
 	if !enable {
 		return &NLPClassifier{Enabled: false}, nil
 	}
@@ -82,12 +139,15 @@ func NewNLPClassifier(modelPath, vocabPath string, enable bool) (*NLPClassifier,
 		return nil, err
 	}
 
-	// Default classification head: haiku vs deepseek
-	// In production, these would be loaded from a trained .bin file.
-	head := &LogisticHead{
-		Weight: make([]float32, 2*model.Config.HiddenSize), // zeros initially
-		Bias:   make([]float32, 2),
-		Labels: []string{"haiku", "deepseek"},
+	// Try to load trained classification head.
+	head, err := LoadClassificationHead(headPath, model.Config.HiddenSize)
+	if err != nil {
+		slog.Warn("classification head not loaded, using untrained defaults", "error", err)
+		head = &LogisticHead{
+			Weight: make([]float32, 2*model.Config.HiddenSize),
+			Bias:   make([]float32, 2),
+			Labels: []string{"haiku", "deepseek"},
+		}
 	}
 
 	c := &NLPClassifier{
@@ -128,20 +188,6 @@ func (c *NLPClassifier) ClassifyText(text string) (target string, confidence flo
 	return target, confidence, scores
 }
 
-// LoadClassificationHead loads trained weights for the logistic head from a file.
-func (c *NLPClassifier) LoadClassificationHead(path string) error {
-	// TODO: implement loading trained head weights from .bin
-	// For now, uses heuristic defaults.
-	hs := c.MiniLM.Config.HiddenSize
-
-	// Simple heuristic: if the embedding indicates technical/code content → deepseek
-	// This requires proper training data. For now, we use rules.
-	_ = hs
-
-	slog.Warn("classification head not trained, using fallback")
-	return nil
-}
-
 func truncateStr(s string, n int) string {
 	runes := []rune(s)
 	if len(runes) <= n {
@@ -149,6 +195,3 @@ func truncateStr(s string, n int) string {
 	}
 	return string(runes[:n]) + "..."
 }
-
-// Update classifier.go to use NLPClassifier
-// This file will be updated next.

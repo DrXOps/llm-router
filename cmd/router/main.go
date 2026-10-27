@@ -17,7 +17,7 @@ import (
 	"github.com/DrXOps/llm-router/internal/slm"
 )
 
-var version = "0.1.0-dev"
+var version = "0.1.0"
 
 func main() {
 	showVersion := flag.Bool("version", false, "show version and exit")
@@ -66,6 +66,7 @@ func main() {
 		cfg.Routing.EnableSLMClassifier,
 		cfg.Routing.SLMModelPath,
 		cfg.Routing.SLMVocabPath,
+		cfg.Routing.SLMHeadPath,
 	)
 	if classifier.Enabled() {
 		slog.Info("SLM NLP classifier loaded", "info", classifier.DebugInfo())

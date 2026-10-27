@@ -33,6 +33,7 @@ type RoutingConfig struct {
 	EnableSLMClassifier bool      `yaml:"enable_slm_classifier"`
 	SLMModelPath        string    `yaml:"slm_model_path"`
 	SLMVocabPath        string    `yaml:"slm_vocab_path"`
+	SLMHeadPath         string    `yaml:"slm_head_path"`
 	Rules               []RuleDef `yaml:"rules"`
 }
 
@@ -79,6 +80,7 @@ func DefaultConfig() *Config {
 			EnableSLMClassifier: false,
 			SLMModelPath:        "model.bin",
 			SLMVocabPath:        "vocab.txt",
+			SLMHeadPath:         "head.bin",
 			Rules: []RuleDef{
 				{
 					Name:        "always_haiku_fallback",

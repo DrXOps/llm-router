@@ -7,19 +7,19 @@ import (
 // Classifier is the main routing classifier.
 // It uses NLP (MiniLM) when enabled and available, falling back to no-op.
 type Classifier struct {
-	nlp    *NLPClassifier
+	nlp     *NLPClassifier
 	enabled bool
 }
 
 // NewClassifier creates a classifier. When enable is true and model/vocab files
 // are found, it loads the full NLP pipeline. Otherwise gracefully degrades.
-func NewClassifier(enable bool, modelPath, vocabPath string) *Classifier {
+func NewClassifier(enable bool, modelPath, vocabPath, headPath string) *Classifier {
 	if !enable {
 		slog.Debug("SLM classifier disabled")
 		return &Classifier{enabled: false}
 	}
 
-	nlp, err := NewNLPClassifier(modelPath, vocabPath, true)
+	nlp, err := NewNLPClassifier(modelPath, vocabPath, headPath, true)
 	if err != nil {
 		slog.Warn("SLM NLP classifier not available, falling back to rules",
 			"error", err,
