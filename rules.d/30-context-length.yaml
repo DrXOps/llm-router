@@ -1,0 +1,8 @@
+name: "long_context_deepseek"
+priority: 30
+enabled: true
+type: "context_length"
+target: "deepseek"
+params:
+  threshold_tokens: 2000
+description: "Long conversations → DeepSeek"

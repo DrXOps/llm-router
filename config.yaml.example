@@ -1,0 +1,50 @@
+# LLM-Router configuration example
+# Copy to config.yaml alongside the binary and edit.
+
+models:
+  haiku:
+    id: "claude-haiku-5-5"
+    name: "Haiku 5.5"
+  deepseek:
+    id: "deepseek-v4-pro"
+    name: "DeepSeek V4 Pro"
+
+# Keyword phrase sets for keyword_match rules.
+phrases:
+  - name: "complex_engineering"
+    phrases:
+      - "refactor"
+      - "architecture"
+      - "refactoring"
+      - "technical debt"
+      - "design pattern"
+  - name: "bug_patterns"
+    phrases:
+      - "bug"
+      - "error"
+      - "crash"
+      - "exception"
+      - "panic"
+
+routing:
+  rules_dir: "./rules.d"
+  include_builtin_rules: true
+  stop_on_first_match: true
+  strict_validation: false
+  watch_rules: false
+  enable_slm_classifier: false
+  rules:
+    - name: "always_haiku_fallback"
+      priority: 9999
+      enabled: true
+      type: "always"
+      target: "haiku"
+      description: "Fallback: route everything to Haiku if no other rule matched"
+
+upstream:
+  base_url: "https://routerapi.ru"
+
+logging:
+  level: "info"
+  log_model_choice: true
+  log_request_body: false

@@ -1,0 +1,6 @@
+name: "tool_calls_force_deepseek"
+priority: 10
+enabled: true
+type: "has_tool_calls"
+target: "deepseek"
+description: "If conversation has tool_use/tool_result → route to DeepSeek"

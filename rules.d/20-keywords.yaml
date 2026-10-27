@@ -1,0 +1,8 @@
+name: "code_keywords_deepseek"
+priority: 20
+enabled: true
+type: "keyword_match"
+target: "deepseek"
+params:
+  phrase_set: "complex_engineering"
+description: "Engineering keywords → DeepSeek"

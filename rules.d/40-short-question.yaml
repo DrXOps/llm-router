@@ -1,0 +1,8 @@
+name: "short_question_haiku"
+priority: 40
+enabled: true
+type: "short_question"
+target: "haiku"
+params:
+  max_tokens: 10
+description: "Short questions → Haiku (faster)"
