@@ -81,10 +81,14 @@ func Rebuild(p *Payload, newModel string) ([]byte, error) {
 // ApproxTokens estimates the number of tokens in a text string.
 // Simple heuristic: 1 token ≈ 4 characters for English text.
 func ApproxTokens(text string) int {
-	if text == "" {
+	return ApproxTokensFromChars(len([]rune(text)))
+}
+
+// ApproxTokensFromChars estimates tokens from a character count.
+func ApproxTokensFromChars(charCount int) int {
+	if charCount == 0 {
 		return 0
 	}
-	charCount := len([]rune(text))
 	tokens := charCount / 4
 	if tokens < 1 {
 		tokens = 1
