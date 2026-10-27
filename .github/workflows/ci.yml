@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Go vet
+        run: go vet ./...
+
+      - name: Go test
+        run: go test ./... -race -count=1
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o llm-router ./cmd/router
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o llm-router.exe ./cmd/router
