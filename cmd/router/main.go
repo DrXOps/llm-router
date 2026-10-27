@@ -61,10 +61,14 @@ func main() {
 		"rules_dir", cfg.Routing.RulesDir,
 	)
 
-	// Initialize SLM classifier (optional, graceful degradation).
-	classifier := slm.NewClassifier(cfg.Routing.EnableSLMClassifier, "")
+	// Initialize SLM classifier (optional, NLP or graceful degradation).
+	classifier := slm.NewClassifier(
+		cfg.Routing.EnableSLMClassifier,
+		cfg.Routing.SLMModelPath,
+		cfg.Routing.SLMVocabPath,
+	)
 	if classifier.Enabled() {
-		slog.Info("SLM classifier enabled")
+		slog.Info("SLM NLP classifier loaded", "info", classifier.DebugInfo())
 	}
 
 	// Build router from config and rules_dir.
@@ -75,8 +79,11 @@ func main() {
 	}
 	slog.Info("router initialized", "rules_count", len(rt.Rules()))
 
+	// Wrap in atomic container for safe hot-reload.
+	atomicRouter := router.NewAtomicRouter(rt)
+
 	// Create proxy handler.
-	handler := proxy.Handler(cfg, rt)
+	handler := proxy.Handler(cfg, atomicRouter, classifier)
 
 	// Setup HTTP server.
 	server := &http.Server{
@@ -102,11 +109,8 @@ func main() {
 					slog.Error("failed to reload rules", "error", err)
 					continue
 				}
-				// Note: this replaces the router in the handler atomically only
-				// if we use a pointer; for now we log success.
-				slog.Info("rules reloaded", "rules_count", len(newRt.Rules()))
-				_ = rt   // old router retained until we implement atomic swap
-				rt = newRt
+				atomicRouter.Store(newRt)
+				slog.Info("rules atomically reloaded", "rules_count", len(newRt.Rules()))
 			}
 		}()
 	}

@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -14,8 +15,16 @@ import (
 	"github.com/user/llm-router/internal/sanitizer"
 )
 
+// Classifier is the interface for optional NLP-based model suggestion.
+type Classifier interface {
+	Classify(lastUserMessage string) (target string, confidence float32)
+	Enabled() bool
+}
+
 // Handler creates the main HTTP handler for the llm-router proxy.
-func Handler(cfg *config.Config, rt *router.Router) http.Handler {
+// rt is an AtomicRouter, safe for concurrent reads and hot-reload swaps.
+// classifier is optional; pass nil to skip NLP classification.
+func Handler(cfg *config.Config, rt *router.AtomicRouter, classifier Classifier) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost || r.URL.Path != "/v1/messages" {
 			http.NotFound(w, r)
@@ -54,11 +63,31 @@ func Handler(cfg *config.Config, rt *router.Router) http.Handler {
 		ctx.ApproxTokens = payload.ApproxTokensFromChars(p.TotalChars())
 		ctx.MessageCount = p.CountMessages()
 
-		result := rt.Eval(ctx)
-		if !result.Match {
-			slog.Warn("no routing rule matched, using fallback",
-				"message_count", ctx.MessageCount)
-			result = router.MatchResult("haiku", "default fallback")
+		// Step 1: NLP classifier (optional).
+		var result router.Result
+		nlpMatched := false
+		if classifier != nil && classifier.Enabled() {
+			nlpTarget, nlpConfidence := classifier.Classify(ctx.LastUserMessage)
+			if nlpTarget != "" && nlpConfidence >= 0.7 {
+				result = router.MatchResult(nlpTarget, fmt.Sprintf("NLP classifier: %.2f confidence", nlpConfidence))
+				nlpMatched = true
+				if cfg.Logging.LogModelChoice {
+					slog.Info("NLP model selected",
+						"target", nlpTarget,
+						"confidence", nlpConfidence,
+					)
+				}
+			}
+		}
+
+		// Step 2: Rules (override NLP only if they match).
+		if !nlpMatched {
+			result = rt.Load().Eval(ctx)
+			if !result.Match {
+				slog.Warn("no routing rule matched, using fallback",
+					"message_count", ctx.MessageCount)
+				result = router.MatchResult("haiku", "default fallback")
+			}
 		}
 
 		newModelID := result.Target
@@ -106,8 +135,8 @@ func Handler(cfg *config.Config, rt *router.Router) http.Handler {
 			return
 		}
 
-		proxy := httputil.NewSingleHostReverseProxy(upstreamURL)
-		proxy.Director = func(req *http.Request) {
+		revProxy := httputil.NewSingleHostReverseProxy(upstreamURL)
+		revProxy.Director = func(req *http.Request) {
 			req.URL.Scheme = upstreamURL.Scheme
 			req.URL.Host = upstreamURL.Host
 			req.URL.Path = "/v1/messages"
@@ -125,7 +154,7 @@ func Handler(cfg *config.Config, rt *router.Router) http.Handler {
 			req.ContentLength = int64(len(newBody))
 		}
 
-		proxy.ServeHTTP(w, r)
+		revProxy.ServeHTTP(w, r)
 	})
 }
 

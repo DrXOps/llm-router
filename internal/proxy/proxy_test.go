@@ -15,7 +15,7 @@ import (
 func TestHandlerRejectsNonPost(t *testing.T) {
 	cfg := config.DefaultConfig()
 	rt, _ := router.LoadAndBuildRouter(cfg)
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 
 	ts := httptest.NewServer(h)
 	defer ts.Close()
@@ -34,7 +34,7 @@ func TestHandlerRejectsNonPost(t *testing.T) {
 func TestHandlerRejectsWrongPath(t *testing.T) {
 	cfg := config.DefaultConfig()
 	rt, _ := router.LoadAndBuildRouter(cfg)
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 
 	ts := httptest.NewServer(h)
 	defer ts.Close()
@@ -84,7 +84,7 @@ func TestHandlerProxiesRequest(t *testing.T) {
 	cfg.Routing.RulesDir = ""
 	rt, _ := router.LoadAndBuildRouter(cfg)
 
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 
@@ -147,7 +147,7 @@ func TestHandlerProxiesWithToolCalls(t *testing.T) {
 	}
 	rt, _ := router.LoadAndBuildRouter(cfg)
 
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 
@@ -166,7 +166,7 @@ func TestHandlerProxiesWithToolCalls(t *testing.T) {
 func TestHandlerInvalidBody(t *testing.T) {
 	cfg := config.DefaultConfig()
 	rt, _ := router.LoadAndBuildRouter(cfg)
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 
 	ts := httptest.NewServer(h)
 	defer ts.Close()
@@ -200,7 +200,7 @@ func TestHandlerProxiesAuthHeader(t *testing.T) {
 	cfg.Routing.RulesDir = ""
 	rt, _ := router.LoadAndBuildRouter(cfg)
 
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 
@@ -250,7 +250,7 @@ func TestHandlerPreservesExtraFields(t *testing.T) {
 	cfg.Routing.RulesDir = ""
 	rt, _ := router.LoadAndBuildRouter(cfg)
 
-	h := Handler(cfg, rt)
+	h := Handler(cfg, router.NewAtomicRouter(rt), nil)
 	ts := httptest.NewServer(h)
 	defer ts.Close()
 

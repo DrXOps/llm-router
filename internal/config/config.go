@@ -31,6 +31,8 @@ type RoutingConfig struct {
 	StrictValidation    bool      `yaml:"strict_validation"`
 	WatchRules          bool      `yaml:"watch_rules"`
 	EnableSLMClassifier bool      `yaml:"enable_slm_classifier"`
+	SLMModelPath        string    `yaml:"slm_model_path"`
+	SLMVocabPath        string    `yaml:"slm_vocab_path"`
 	Rules               []RuleDef `yaml:"rules"`
 }
 
@@ -74,6 +76,9 @@ func DefaultConfig() *Config {
 			StopOnFirstMatch:    true,
 			StrictValidation:    false,
 			WatchRules:          false,
+			EnableSLMClassifier: false,
+			SLMModelPath:        "model.bin",
+			SLMVocabPath:        "vocab.txt",
 			Rules: []RuleDef{
 				{
 					Name:        "always_haiku_fallback",
