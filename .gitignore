@@ -1,0 +1,23 @@
+# Binaries
+/llm-router
+/llm-router.exe
+/models/
+
+# Tests
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+
+# Config
+/config.yaml
+*.local.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+vendor/
