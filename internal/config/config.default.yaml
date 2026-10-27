@@ -33,7 +33,7 @@ routing:
       description: "Fallback: route to Haiku if no other rule matched"
 
 upstream:
-  base_url: "https://routerapi.ru"
+  base_url: "https://routerai.ru"
 
 logging:
   level: "info"

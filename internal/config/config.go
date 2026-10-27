@@ -91,7 +91,7 @@ func DefaultConfig() *Config {
 			},
 		},
 		Upstream: UpstreamConfig{
-			BaseURL: "https://routerapi.ru",
+			BaseURL: "https://routerai.ru",
 		},
 		Logging: LoggingConfig{
 			Level:              "info",

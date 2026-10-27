@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/user/llm-router/internal/config"
-	"github.com/user/llm-router/internal/router"
+	"github.com/DrXOps/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/router"
 )
 
 func TestHandlerRejectsNonPost(t *testing.T) {

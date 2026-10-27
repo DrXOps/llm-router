@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 // WatchRules polls the rules directory every interval and returns a channel

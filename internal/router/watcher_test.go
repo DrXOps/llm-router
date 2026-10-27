@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 func TestScanDirModTimes(t *testing.T) {

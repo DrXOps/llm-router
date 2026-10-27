@@ -9,11 +9,13 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/user/llm-router/internal/config"
-	"github.com/user/llm-router/internal/payload"
-	"github.com/user/llm-router/internal/router"
-	"github.com/user/llm-router/internal/sanitizer"
+	"github.com/DrXOps/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/payload"
+	"github.com/DrXOps/llm-router/internal/router"
+	"github.com/DrXOps/llm-router/internal/sanitizer"
 )
+
+var version = "0.1.0"
 
 // Classifier is the interface for optional NLP-based model suggestion.
 type Classifier interface {
@@ -25,8 +27,23 @@ type Classifier interface {
 // rt is an AtomicRouter, safe for concurrent reads and hot-reload swaps.
 // classifier is optional; pass nil to skip NLP classification.
 func Handler(cfg *config.Config, rt *router.AtomicRouter, classifier Classifier) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost || r.URL.Path != "/v1/messages" {
+	mux := http.NewServeMux()
+
+	// Status endpoint — shows router health, rules count, classifier status.
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		rulesCount := len(rt.Load().Rules())
+		clsStatus := "disabled"
+		if classifier != nil && classifier.Enabled() {
+			clsStatus = "enabled"
+		}
+		fmt.Fprintf(w, `{"status":"ok","version":"%s","rules_count":%d,"classifier":"%s","upstream":"%s"}`,
+			version, rulesCount, clsStatus, cfg.Upstream.BaseURL)
+	})
+
+	// Main proxy endpoint.
+	mux.HandleFunc("/v1/messages", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
 			http.NotFound(w, r)
 			return
 		}
@@ -156,6 +173,8 @@ func Handler(cfg *config.Config, rt *router.AtomicRouter, classifier Classifier)
 
 		revProxy.ServeHTTP(w, r)
 	})
+
+	return mux
 }
 
 func truncate(s string, maxLen int) string {

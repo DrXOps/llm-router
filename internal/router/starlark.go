@@ -9,7 +9,7 @@ import (
 
 	"go.starlark.net/starlark"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 // starlarkTimeout is the maximum execution time for a single Starlark rule.

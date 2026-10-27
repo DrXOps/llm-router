@@ -30,8 +30,8 @@ jobs:
 
       - name: Build Linux
         if: matrix.os == 'ubuntu-latest'
-        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o llm-router ./cmd/router
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o llm-router-linux ./cmd/router
 
       - name: Build Windows
         if: matrix.os == 'windows-latest'
-        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o llm-router.exe ./cmd/router
+        run: GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o llm-router-win.exe ./cmd/router

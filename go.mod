@@ -1,4 +1,4 @@
-module github.com/user/llm-router
+module github.com/DrXOps/llm-router
 
 go 1.27.0
 

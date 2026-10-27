@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 func testStarlarkCtx() *PayloadCtx {

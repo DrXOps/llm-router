@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 // Result represents the outcome of evaluating a rule.

@@ -11,10 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/user/llm-router/internal/config"
-	"github.com/user/llm-router/internal/proxy"
-	"github.com/user/llm-router/internal/router"
-	"github.com/user/llm-router/internal/slm"
+	"github.com/DrXOps/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/proxy"
+	"github.com/DrXOps/llm-router/internal/router"
+	"github.com/DrXOps/llm-router/internal/slm"
 )
 
 var version = "0.1.0-dev"

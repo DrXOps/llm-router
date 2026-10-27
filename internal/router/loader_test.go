@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 func writeYAML(path, content string) {

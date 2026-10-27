@@ -3,7 +3,7 @@ package router
 import (
 	"testing"
 
-	"github.com/user/llm-router/internal/config"
+	"github.com/DrXOps/llm-router/internal/config"
 )
 
 // testPayloadCtx builds a PayloadCtx from payload-like data for testing.

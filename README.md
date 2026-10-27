@@ -1,48 +1,51 @@
 # LLM-Router
 
 Умный HTTP reverse-proxy для маршрутизации запросов Claude Code
-между моделями Haiku 5.5 и DeepSeek V4 Pro через routerapi.ru.
+между моделями Haiku 5.5 и DeepSeek V4 Pro через routerai.ru.
 
-Автоматически выбирает модель на основе правил (YAML + Starlark),
-без участия пользователя.
+Автоматически выбирает модель на основе NLP-классификатора + правил.
+**Не требует конфигурации — работает из коробки.**
 
 ## Быстрый старт
 
 ```bash
-# Собрать
-make build-linux
+# Скачать готовый бинарник (Linux amd64)
+curl -LO https://github.com/DrXOps/llm-router/releases/download/v0.1.0/llm-router-linux
+chmod +x llm-router-linux
 
-# Запустить (с дефолтным конфигом)
-export LLM_ROUTER_API_KEY=ваш_ключ
-./llm-router
+# Запустить
+export LLM_ROUTER_API_KEY=ваш_ключ_routerai
+./llm-router-linux
+```
 
-# Настроить Claude Code
+Claude Code:
+```bash
 export ANTHROPIC_BASE_URL=http://localhost:8080
-export ANTHROPIC_AUTH_TOKEN=""   # обязательно пустой
+export ANTHROPIC_AUTH_TOKEN=""
+claude
+```
+
+## Проверка что работает
+
+```bash
+curl http://localhost:8080/health
+# → {"status":"ok","version":"0.1.0","rules_count":1,"classifier":"disabled","upstream":"https://routerai.ru"}
 ```
 
 ## Документация
 
-- [USAGE.md](docs/USAGE.md) — как установить и запустить
-- [CONFIG.md](docs/CONFIG.md) — справочник по конфигурации
-- [RULES.md](docs/RULES.md) — как писать правила маршрутизации
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — как всё устроено
-- [PLAN.md](docs/PLAN.md) — план реализации
+- [USAGE](docs/USAGE.md) — как установить, настроить Claude Code
+- [RULES](docs/RULES.md) — как писать правила маршрутизации
+- [CONFIG](docs/CONFIG.md) — справочник по конфигурации
+- [ARCHITECTURE](docs/ARCHITECTURE.md) — как устроен поток запроса
 
 ## Особенности
 
-- 🚀 **Один бинарник** — статическая сборка, CGO_ENABLED=0
+- 🚀 **Готовый бинарник** — скачал и запустил, без Go, без сборки
 - 📦 **Zero config** — работает из коробки с embedded дефолтами
+- 🧠 **NLP-классификатор** — понимает смысл запроса (русский + английский)
 - 🔧 **Гибкие правила** — YAML для простых случаев, Starlark для сложных
-- 🔒 **Sandbox** — Starlark-скрипты не имеют доступа к IO/сети
-- ♻️ **Hot-reload** — меняйте правила без перезапуска
-- 📊 **Структурированные логи** — log/slog в stderr
-
-## Команды
-
-```bash
-make build-linux    # Сборка для Linux amd64
-make build-win      # Сборка для Windows amd64
-make test           # Запуск тестов
-make vet            # Статический анализ
-```
+- 🔒 **Sandbox** — Starlark-скрипты в песочнице, без доступа к IO/сети
+- ♻️ **Hot-reload** — меняй правила без перезапуска
+- 📊 **Health endpoint** — `/health` для мониторинга
+- ⚡ **CGO_ENABLED=0** — статический бинарник, работает везде
